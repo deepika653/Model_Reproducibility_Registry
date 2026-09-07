@@ -1,9 +1,16 @@
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from pathlib import Path
 from database import init_database, get_connection
 
-app = Flask(__name__)
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates")
+)
 
 # Initialize database
 init_database()
@@ -671,6 +678,12 @@ def audit_summary():
         ],
         "status": "Registry implementation completed"
     })
+# ---------------------------------------------------------
+# DASHBOARD
+# ---------------------------------------------------------
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
 # ---------------------------------------------------------
 # RUN APPLICATION
 # ---------------------------------------------------------
