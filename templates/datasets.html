@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dataset Versions</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 35px;
+        }
+
+        .header h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .table-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f5f9ff;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 25px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .back-container {
+            text-align: center;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 14px 28px;
+            background: white;
+            color: #3498db;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .back:hover {
+            transform: translateY(-3px);
+            background: #eef7ff;
+        }
+
+        @media(max-width: 600px) {
+
+            body {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .table-box {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 10px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+
+            <h1>📁 Dataset Versions</h1>
+
+            <p>
+                Registered Dataset Version Information
+            </p>
+
+        </div>
+
+
+        <div class="table-box">
+
+            {% if datasets %}
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Dataset Version</th>
+                        <th>Dataset Name</th>
+                        <th>File Path</th>
+                        <th>Record Count</th>
+                        <th>Created At</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for dataset in datasets %}
+
+                    <tr>
+
+                        <td>{{ dataset.id }}</td>
+
+                        <td>
+                            {{ dataset.dataset_version }}
+                        </td>
+
+                        <td>
+                            {{ dataset.dataset_name }}
+                        </td>
+
+                        <td>
+                            {{ dataset.file_path }}
+                        </td>
+
+                        <td>
+                            {{ dataset.record_count }}
+                        </td>
+
+                        <td>
+                            {{ dataset.created_at }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+            <div class="empty-message">
+
+                No dataset versions found.
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="back-container">
+
+            <a href="/dashboard" class="back">
+
+                ← Back to Dashboard
+
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Model Artifacts</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 35px;
+        }
+
+        .header h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .table-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            overflow-x: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #9b59b6;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #faf5ff;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 25px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .back-container {
+            text-align: center;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 14px 28px;
+            background: white;
+            color: #9b59b6;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .back:hover {
+            transform: translateY(-3px);
+            background: #f5eeff;
+        }
+
+        @media(max-width: 600px) {
+
+            body {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .table-box {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 10px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+
+            <h1>🤖 Model Artifacts</h1>
+
+            <p>
+                Registered Machine Learning Model Information
+            </p>
+
+        </div>
+
+
+        <div class="table-box">
+
+            {% if models %}
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Model Version</th>
+                        <th>Model Name</th>
+                        <th>Artifact Path</th>
+                        <th>Algorithm</th>
+                        <th>Parameters</th>
+                        <th>Created At</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for model in models %}
+
+                    <tr>
+
+                        <td>{{ model.id }}</td>
+
+                        <td>
+                            {{ model.model_version }}
+                        </td>
+
+                        <td>
+                            {{ model.model_name }}
+                        </td>
+
+                        <td>
+                            {{ model.artifact_path }}
+                        </td>
+
+                        <td>
+                            {{ model.algorithm }}
+                        </td>
+
+                        <td>
+                            {{ model.parameters }}
+                        </td>
+
+                        <td>
+                            {{ model.created_at }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+            <div class="empty-message">
+
+                No model artifacts found.
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="back-container">
+
+            <a href="/dashboard" class="back">
+
+                ← Back to Dashboard
+
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
