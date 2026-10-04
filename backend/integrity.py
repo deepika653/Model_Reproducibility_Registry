@@ -1,4 +1,5 @@
 
+import sqlite3
 import hashlib
 from pathlib import Path
 
@@ -10,7 +11,12 @@ from database import get_connection
 # ---------------------------------------------------------
 def calculate_sha256(file_path):
     """Calculate the SHA-256 hash of a file."""
+
+    base_dir = Path(__file__).resolve().parent.parent
     path = Path(file_path)
+
+    if not path.is_absolute():
+        path = base_dir / path
 
     if not path.is_file():
         raise FileNotFoundError(
@@ -31,6 +37,7 @@ def calculate_sha256(file_path):
 # ---------------------------------------------------------
 def store_artifact_hash(model_version):
     """Calculate and store the hash for a registered model."""
+
     connection = get_connection()
 
     try:
@@ -79,6 +86,7 @@ def store_artifact_hash(model_version):
 # ---------------------------------------------------------
 def verify_artifact_hash(model_version):
     """Compare the current artifact hash with its stored hash."""
+
     connection = get_connection()
 
     try:

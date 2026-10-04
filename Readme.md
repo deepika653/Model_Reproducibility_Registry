@@ -1,173 +1,159 @@
-# 🤖 Model Reproducibility Registry
+
+# Model Reproducibility Registry
 
 ## 📌 Project Overview
 
-The Model Reproducibility Registry is a Machine Learning Governance System designed to track, validate, reproduce, and audit Machine Learning models.
+The **Model Reproducibility Registry** is a Flask-based application designed to manage, track, validate, and audit machine learning model development and deployment.
 
-The system maintains version information for datasets, features, code, models, approvals, deployments, and historical predictions. This helps ensure that Machine Learning predictions can be traced back to the resources and versions used during prediction.
+The system maintains dataset versions, feature definitions, code versions, model artifacts, approval records, deployment information, and historical predictions in an SQLite database.
 
-The project provides a dynamic dashboard with clickable cards that display detailed records for each component of the Machine Learning lifecycle.
-
----
+It helps improve model governance, reproducibility, artifact integrity, and auditability throughout the machine learning lifecycle.
 
 ## 🎯 Project Objectives
 
-* Track Dataset Versions
-* Track Feature Definitions
-* Track Code Versions
-* Register Model Artifacts
-* Record Model Approvals
-* Track Model Deployments
-* Store Historical Predictions
-* Validate Prediction Reproducibility
-* Perform Audit Tracking
-* Maintain Machine Learning Governance
+- Maintain dataset and feature version information.
+- Track source code and model artifact versions.
+- Manage model approval and deployment workflows.
+- Record and validate historical predictions.
+- Detect missing resources and dataset schema changes.
+- Verify model artifact integrity using SHA-256 hashes.
+- Conduct fresh model-retraining reproducibility experiments.
+- Maintain audit records for model governance.
 
----
+## 🚀 Key Features
 
-## 🚀 Features
+### 1. Dataset Version Management
 
-### 📁 Dataset Versioning
+- Register and manage dataset versions.
+- Store dataset metadata and schema information.
+- Maintain dataset version history.
+- Detect dataset schema changes.
 
-Stores dataset version, dataset name, file path, record count, and creation date.
+### 2. Feature Management
 
-### 🔍 Feature Tracking
+- Register feature definitions.
+- Associate features with feature versions.
+- Maintain feature metadata for model development.
 
-Tracks feature definitions used by Machine Learning models.
+### 3. Code Version Management
 
-Example features:
+- Register code versions and associated commit information.
+- Maintain code version records for model traceability.
 
-* Age
-* Gender
-* Blood Pressure
-* Glucose Level
-* Heart Rate
-* Symptom Score
+### 4. Model Artifact Management
 
-### 💻 Code Versioning
+- Register trained machine learning models.
+- Store model artifact paths and metadata.
+- Associate model artifacts with dataset and feature versions.
+- Track model accuracy and artifact information.
 
-Tracks:
+### 5. Approval Workflow
 
-* Code Version
-* Commit Hash
-* Repository
+The application supports role-based model approval workflows.
 
-### 🤖 Model Registry
+**Supported roles:**
+- ML Engineer
+- Auditor
 
-Stores:
+Approval records are maintained in the registry for governance and traceability.
 
-* Model Version
-* Model Name
-* Artifact Path
-* Algorithm
-* Parameters
+### 6. Deployment Management
 
-### ✅ Model Approval
+- Register model deployment records.
+- Track deployment information.
+- Maintain deployment history in the database.
 
-Records:
+### 7. Historical Prediction Tracking
 
-* Model Version
-* Approved By
-* Role
-* Approval Status
-* Approval Date
-* Comments
+- Store historical prediction records.
+- Associate predictions with registered model versions.
+- Validate stored predictions against the registry's reproducibility checks.
 
-### 🚀 Deployment Tracking
+### 8. Reproducibility Validation
 
-Tracks:
+The application provides reproducibility validation for registered model versions and historical predictions.
 
-* Deployment Version
-* Model Version
-* Environment
-* Deployed By
-* Deployment Status
-* Deployment Date
+It includes:
+- Historical prediction validation.
+- Reproducibility experiment reporting.
+- Model and version traceability.
 
-### 📊 Historical Predictions
+### 9. Failure Testing
 
-Stores prediction records along with:
+The application includes tests for missing registry resources, including:
+- Missing dataset
+- Missing code version
+- Missing model
 
-* Dataset Version
-* Feature Version
-* Code Version
-* Model Version
-* Deployment Version
-* Reproducibility Status
+These tests help verify that the application detects the tested missing-resource conditions.
 
-### ♻️ Reproducibility Validation
+### 10. Dataset Schema Validation
 
-The system validates historical predictions using:
+The registry supports dataset schema registration and schema-drift detection.
 
-* Dataset Version
-* Feature Version
-* Code Version
-* Model Version
+It can identify changes in a dataset's registered schema and report whether schema drift is detected.
 
-Predictions are marked as:
+### 11. Artifact Integrity Verification
 
-* REPRODUCIBLE
-* FAILED
+The application implements SHA-256-based model artifact integrity verification.
 
-### 🧪 Failure Testing
+The feature:
+- Calculates a model artifact's SHA-256 hash.
+- Stores the hash in the registry database.
+- Recalculates the hash during verification.
+- Compares the current hash with the stored hash.
+- Reports whether the artifact integrity check passes or fails.
 
-The system includes tests for missing registered resources, such as datasets, code versions, and models. These tests check whether expected failures are detected.
+### 12. Fresh Model-Retraining Reproducibility
 
----
+A separate experiment script trains two models independently using the same dataset, feature configuration, and model parameters.
 
-## 🖥️ Dashboard
+The experiment compares:
+- Model accuracy
+- Predictions
+- Serialized artifact SHA-256 hashes
 
-The interactive dashboard contains clickable cards for:
+It generates a JSON report containing the experiment configuration, comparison results, and outcome.
 
-* 📁 Dataset Versions
-* 🤖 Model Artifacts
-* ✅ Approvals
-* 🚀 Deployments
-* 📊 Historical Predictions
-* ♻️ Reproducible Predictions
+## 📊 Dashboard
 
-Each card opens a detailed page displaying the corresponding records.
+The application provides dashboard and management pages for viewing registry information and interacting with the model governance workflow.
 
----
+Available pages include:
 
-## 👥 Project Roles
+- Main Dashboard
+- Dataset Management
+- Model Management
+- Approval Management
+- Deployment Management
+- Prediction Records
+- Reproducibility Validation
 
-### 👨‍💻 ML Engineer
+## 👥 User Roles
 
-Responsible for:
+### ML Engineer
 
-* Model Development
-* Model Registration
-* Deployment
-* Prediction Tracking
+The ML Engineer can perform model development and registry operations, including registering model-related information and working with approval and deployment workflows.
 
-### 🔍 Auditor
+### Auditor
 
-Responsible for:
-
-* Model Approval
-* Audit Verification
-* Reproducibility Validation
-* Governance Tracking
-
----
+The Auditor role supports review and governance activities through the approval workflow and registry records.
 
 ## 🛠️ Technologies Used
 
-* Python
-* Flask
-* SQLite
-* HTML
-* CSS
-* Jinja Templates
-* Git
-* GitHub
-* Pandas
-* Scikit-learn
+| Technology | Purpose |
+|---|---|
+| Python | Application and machine learning logic |
+| Flask | Web application framework and API |
+| SQLite | Registry database |
+| Pandas | Dataset loading and processing |
+| Scikit-learn | Model training and evaluation |
+| Joblib | Model artifact serialization |
+| HTML | Web page structure |
+| CSS | Web page styling |
+| Git | Source code version control |
 
----
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```text
 Model_Registry/
@@ -175,64 +161,92 @@ Model_Registry/
 ├── backend/
 │   ├── app.py
 │   ├── database.py
-│   ├── models.py
-│   └── integrity.py
+│   ├── integrity.py
+│   └── ...
 │
 ├── data/
 │   └── dataset_v1.csv
 │
 ├── models/
+│   ├── train_model.py
 │   ├── model_v1.pkl
-│   └── train_model.py
+│   ├── reproducibility_experiment.py
+│   ├── reproducibility_run_1.pkl
+│   ├── reproducibility_run_2.pkl
+│   └── reproducibility_report.json
 │
 ├── templates/
-│   ├── dashboard.html
-│   ├── datasets.html
-│   ├── models.html
-│   ├── approvals.html
-│   ├── deployments.html
-│   ├── predictions.html
-│   └── reproducible.html
+│   └── ...
 │
-├── fix_feature_schema.py
+├── static/
+│   └── ...
+│
 ├── model_registry.db
 ├── model_registry_backup.db
+├── .gitignore
 └── Readme.md
 ```
 
----
+*Note: The structure above shows the main project files. Additional files and folders may exist in the application.*
 
-## ⚙️ Setup and Run
+## ⚙️ Installation and Setup
 
-### 1. Prerequisites
+### Prerequisites
 
-Make sure Python and pip are installed on your system.
+Install the following:
 
-### 2. Install Dependencies
+- Python
+- pip
+- Git
+- Visual Studio Code (recommended)
 
-Open a terminal in the project folder and install the required packages:
+### 1. Clone the Repository
 
 ```bash
-pip install flask pandas scikit-learn
+git clone <YOUR_GITHUB_REPOSITORY_URL>
 ```
 
-If the application uses additional packages, install those as required by the project's imports.
+### 2. Navigate to the Project Folder
 
-### 3. Navigate to the Backend Folder
+```powershell
+cd Model_Registry
+```
 
-```bash
+### 3. Create a Virtual Environment
+
+```powershell
+python -m venv venv
+```
+
+### 4. Activate the Virtual Environment
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+### 5. Install Dependencies
+
+Install the required packages:
+
+```powershell
+pip install flask pandas scikit-learn joblib
+```
+
+### 6. Run the Application
+
+Navigate to the backend directory:
+
+```powershell
 cd backend
 ```
 
-### 4. Run the Application
+Start the Flask application:
 
-```bash
+```powershell
 python app.py
 ```
 
-### 5. Open the Dashboard
-
-Open your web browser and visit:
+Open the application in your browser:
 
 ```text
 http://127.0.0.1:5000
@@ -240,53 +254,130 @@ http://127.0.0.1:5000
 
 Keep the terminal running while using the application.
 
----
-
 ## 🧪 Validation Summary
 
 The current project database contains the following records:
 
-| Component              | Record Count |
-| ---------------------- | -----------: |
-| Dataset Versions       |            1 |
-| Feature Definitions    |            6 |
-| Code Versions          |            1 |
-| Model Artifacts        |            1 |
-| Approvals              |            2 |
-| Deployments            |            1 |
-| Historical Predictions |            5 |
-| Dataset Schema Records |            8 |
-| Registry Rules         |            5 |
+| Component | Record Count |
+|---|---:|
+| Dataset Versions | 1 |
+| Feature Definitions | 6 |
+| Code Versions | 1 |
+| Model Artifacts | 1 |
+| Approvals | 2 |
+| Deployments | 1 |
+| Historical Predictions | 5 |
+| Dataset Schema Records | 8 |
+| Registry Rules | 5 |
 
-### Reproducibility Experiment
+These counts reflect the database state at the time of validation.
 
-The recorded reproducibility experiment reported:
+### 1. Historical Reproducibility Experiment
 
-* Total Historical Predictions: 5
-* Reproducible Predictions: 5
-* Failed Predictions: 0
-* Measured Reproducibility: 100%
-* Experiment Result: PASS
+The recorded historical prediction experiment reported:
 
-This result reflects validation of stored historical predictions by the application. It does not independently demonstrate a fresh model-retraining experiment.
+| Metric | Result |
+|---|---:|
+| Total Historical Predictions | 5 |
+| Reproducible Predictions | 5 |
+| Failed Predictions | 0 |
+| Measured Reproducibility | 100% |
+| Experiment Result | PASS |
 
-### Failure Testing
+This result reflects validation of stored historical predictions by the application. It does not independently demonstrate fresh model retraining.
+
+### 2. Failure Testing
 
 Three missing-resource failure tests were recorded:
 
-* Missing Dataset
-* Missing Code Version
-* Missing Model
+| Test | Result |
+|---|---|
+| Missing Dataset | FAILED AS EXPECTED |
+| Missing Code Version | FAILED AS EXPECTED |
+| Missing Model | FAILED AS EXPECTED |
 
-All three were reported as **FAILED AS EXPECTED**, indicating that the application detected the tested missing-resource conditions.
+All three tests were reported as **FAILED AS EXPECTED**, indicating that the application detected the tested missing-resource conditions.
 
-### Dataset Schema Validation
+### 3. Dataset Schema Validation
 
-The application includes dataset schema registration and schema-drift checking. An added-column test detected schema drift, and the original dataset was restored and subsequently reported no drift.
+The application supports dataset schema registration and schema-drift checking.
+
+The following test was performed:
+
+- An additional column was introduced to test schema change detection.
+- The application detected the schema drift.
+- The original dataset was restored.
+- A subsequent schema check reported `NO DRIFT`.
+
+**Status:** PASS — Schema drift detection was demonstrated successfully.
+
+### 4. Artifact Integrity Verification
+
+The registry's SHA-256-based artifact integrity verification was tested using `model_v1`.
+
+The following operations were completed:
+
+- **Hash Generation:** Calculated the SHA-256 hash of the registered model artifact.
+- **Hash Storage:** Saved the calculated hash in the registry database.
+- **Hash Verification:** Recalculated the hash and compared it with the stored hash.
+- **Verification Result:** `REPRODUCIBLE: Artifact hash verified.`
+
+**Model Version:** `model_v1`
+
+**Verified SHA-256 Hash:**
+
+```text
+93d4d765be8ebe5a41ad2b20f2c2bb76d75f707044afe53d8daeb616bb6191f9
+```
+
+**Status:** PASS — The stored and recalculated artifact hashes matched during verification.
+
+This confirms the integrity of the tested model artifact at verification time. It does not, by itself, establish that retraining will produce an identical model.
+
+### 5. Fresh Model-Retraining Reproducibility
+
+A fresh model-retraining experiment was conducted using two independent training runs with the same dataset, feature configuration, and model parameters.
+
+**Experiment Configuration:**
+
+| Parameter | Value |
+|---|---|
+| Dataset | `dataset_v1` |
+| Feature Version | `feature_v1` |
+| Model | `DecisionTreeClassifier` |
+| Maximum Depth | 5 |
+| Random State | 42 |
+| Test Size | 20% |
+| Training Runs | 2 |
+
+**Experiment Results:**
+
+| Metric | Run 1 | Run 2 |
+|---|---:|---:|
+| Model Accuracy | 98.8% | 98.8% |
+| Predictions | Identical | Identical |
+| Artifact SHA-256 | Matching | Matching |
+
+**Validation Results:**
+
+- **Predictions Match:** PASS
+- **Accuracy Match:** PASS
+- **Artifact Hash Match:** PASS
+- **Experiment Result:** PASS
+
+Both training runs produced identical predictions, accuracy, and serialized artifact hashes for the tested configuration and dataset.
+
+**Experiment Report:**
+
+`models/reproducibility_report.json`
+
+**Status:** PASS — Fresh model-retraining reproducibility was successfully demonstrated for the tested configuration and dataset.
 
 ## 💾 Database
 
-The application uses SQLite to store:
+The application uses **SQLite** to store and manage model registry information.
+
+The database contains the following tables and records:
 
 - Dataset Versions
 - Feature Definitions
@@ -298,75 +389,95 @@ The application uses SQLite to store:
 - Registry Rules
 - Dataset Schemas
 
+### Database Location
+
 The configured database is located in the project root:
 
-`model_registry.db`
+```text
+model_registry.db
+```
 
 A separate database backup is maintained as:
 
-`model_registry_backup.db`
-
-**Important:** Keep a backup of the database before making changes. The application is configured to use the root-level database, not the empty database file inside the backend folder.
-
-## 📈 Model Information
-
-The project includes a Hospital Risk Prediction Model trained using a Decision Tree Classifier.
-
-The model uses the following input features:
-
-* Age
-* Gender
-* Blood Pressure
-* Glucose Level
-* Heart Rate
-* Symptom Score
-
-The model configuration includes:
-
-* Algorithm: Decision Tree Classifier
-* Maximum Depth: 5
-* Random State: 42
-* Train-Test Split: 80:20
-
-The registered model artifact is stored at:
-
 ```text
-models/model_v1.pkl
+model_registry_backup.db
 ```
 
-The model's registered accuracy is 98.8%. This is the project's recorded metric and should be interpreted in the context of its dataset and evaluation method.
+**Important:** Keep a backup of the database before making changes. The application is configured to use the root-level database, not the empty database file inside the `backend` folder.
 
-**Dataset note:** The hospital-risk dataset is a project dataset and should not be represented as real patient data unless independently verified.
+## 🤖 Model Information
 
----
+The project uses a **Decision Tree Classifier** for hospital risk-level prediction.
 
-## 🔐 Model Governance
+### Model Configuration
 
-The registry supports model lifecycle governance through:
+| Parameter | Value |
+|---|---|
+| Algorithm | Decision Tree Classifier |
+| Maximum Depth | 5 |
+| Random State | 42 |
+| Training/Test Split | 80% / 20% |
+| Dataset Version | `dataset_v1` |
+| Feature Version | `feature_v1` |
+| Model Version | `model_v1` |
+| Recorded Accuracy | 98.8% |
 
-* Dataset and feature version tracking
-* Code and model artifact registration
-* Model approval records
-* Deployment tracking
-* Historical prediction records
-* Reproducibility validation
-* Audit summaries
-* Failure testing
+### Input Features
 
-These capabilities help maintain traceability and accountability across the model lifecycle.
+The model uses the following six features:
 
----
+1. Age
+2. Gender
+3. Blood Pressure
+4. Glucose Level
+5. Heart Rate
+6. Symptom Score
 
-## 👩‍🎓 Author
+**Target Variable:** `risk_level`
 
-**Deepika S**
-B.Tech Information Technology
-Rathinam College, Coimbatore
+The dataset used in this project is a synthetic hospital-risk dataset. It is intended for project demonstration and software validation, not for real-world clinical diagnosis or treatment.
 
----
+## 🔐 Model Governance and Auditability
 
-## 📌 Conclusion
+The registry supports model governance through:
 
-The Model Reproducibility Registry provides a centralized application for tracking machine learning resources, model versions, approvals, deployments, and historical predictions.
+- Dataset and feature version tracking
+- Code version registration
+- Model artifact registration
+- Role-based approval records
+- Deployment tracking
+- Historical prediction records
+- Schema-drift detection
+- Missing-resource failure testing
+- SHA-256 artifact integrity verification
+- Fresh model-retraining reproducibility experiments
 
-It demonstrates how version tracking, reproducibility checks, audit records, and failure testing can be incorporated into a machine learning governance workflow.
+These capabilities help maintain traceability and support auditing of the registered model lifecycle.
+
+## 📈 Future Enhancements
+
+Potential future improvements include:
+
+- Automated model retraining and comparison through the web application
+- Expanded audit logs and downloadable audit reports
+- More comprehensive model validation metrics
+- Automated dataset and model integrity checks
+- Enhanced dashboard visualizations
+- Additional role-based access controls
+- Deployment monitoring and model performance tracking
+
+## 👩‍💻 Author
+
+**Deepika S**  
+**Department:** B.Tech Information Technology  
+**College:** Rathinam College, Coimbatore
+
+## 📝 Conclusion
+
+The **Model Reproducibility Registry** provides a Flask-based platform for tracking and validating machine learning model lifecycle information.
+
+It brings together dataset and feature versioning, code and model registration, approval workflows, deployment tracking, historical prediction validation, schema-drift detection, artifact integrity verification, and fresh model-retraining reproducibility experiments.
+
+The tested features demonstrate the application's ability to maintain registry records, detect selected failure conditions, verify artifact integrity, and reproduce matching model results under the tested configuration.
+
+The project provides a foundation for improving machine learning traceability, reproducibility, and governance.

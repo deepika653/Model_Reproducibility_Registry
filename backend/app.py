@@ -1,9 +1,15 @@
-
-from flask import Flask, jsonify, render_template
+from integrity import store_artifact_hash, verify_artifact_hash
+from flask import Flask, jsonify, render_template, request, session
+from werkzeug.security import generate_password_hash, check_password_hash
 from pathlib import Path
+from functools import wraps
 from database import init_database, get_connection
+import joblib
 import csv
 import re
+import json
+import subprocess
+import sys
 
 
 # ---------------------------------------------------------
@@ -16,9 +22,38 @@ app = Flask(
     __name__,
     template_folder=str(BASE_DIR / "templates")
 )
+app.secret_key = "model_registry_secret_key"
+def role_required(required_role):
+    def decorator(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
 
+            if "user_id" not in session:
+                return jsonify({
+                    "status": "FAILED",
+                    "message": "Login required"
+                }), 401
+
+            if session.get("role") != required_role:
+                return jsonify({
+                    "status": "FAILED",
+                    "message": "Access denied"
+                }), 403
+
+            return function(*args, **kwargs)
+
+        return wrapper
+    return decorator
 init_database()
-
+@app.route("/ml-engineer-test", methods=["GET"])
+@role_required("ML Engineer")
+def ml_engineer_test():
+    return jsonify({
+        "status": "SUCCESS",
+        "message": "ML Engineer access granted",
+        "username": session["username"],
+        "role": session["role"]
+    }), 200
 
 # ---------------------------------------------------------
 # SHARED DATASET SCHEMA HELPERS
@@ -372,12 +407,90 @@ def get_models():
     finally:
         connection.close()
 
+# ---------------------------------------------------------
+# MODEL ARTIFACT INTEGRITY
+# ---------------------------------------------------------
 
+@app.route("/models/<model_version>/store-hash", methods=["POST"])
+def store_model_hash(model_version):
+    success, result = store_artifact_hash(model_version)
+
+    if not success:
+        return jsonify({
+            "status": "error",
+            "message": result
+        }), 400
+
+    return jsonify({
+        "status": "success",
+        "model_version": model_version,
+        "artifact_hash": result
+    }), 200
+
+
+@app.route("/models/<model_version>/verify-hash", methods=["GET"])
+def verify_model_hash(model_version):
+    success, result = verify_artifact_hash(model_version)
+
+    if not success:
+        return jsonify({
+            "status": "failed",
+            "model_version": model_version,
+            "message": result
+        }), 400
+
+    return jsonify({
+        "status": "success",
+        "model_version": model_version,
+        "message": result
+    }), 200
+
+@app.route("/run-fresh-reproducibility", methods=["POST"])
+def run_fresh_reproducibility():
+    script_path = BASE_DIR / "models" / "reproducibility_experiment.py"
+    report_path = BASE_DIR / "models" / "reproducibility_report.json"
+
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script_path)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(BASE_DIR)
+        )
+
+        if result.returncode != 0:
+            return jsonify({
+                "status": "failed",
+                "error": result.stderr or result.stdout
+            }), 500
+
+        with open(report_path, "r", encoding="utf-8") as file:
+            report = json.load(file)
+
+        return jsonify({
+            "status": "success",
+            "report": report,
+            "output": result.stdout
+        })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            "status": "failed",
+            "error": "Experiment timed out."
+        }), 500
+
+    except (OSError, json.JSONDecodeError) as error:
+        return jsonify({
+            "status": "failed",
+            "error": str(error)
+        }), 500
 # ---------------------------------------------------------
 # REGISTER APPROVAL
 # ---------------------------------------------------------
 
-@app.route("/register-approval")
+@app.route("/register-approval", methods=["POST"])
+@role_required("Auditor")
 def register_approval():
     connection = get_connection()
 
@@ -427,7 +540,8 @@ def get_approvals():
 # REGISTER DEPLOYMENT
 # ---------------------------------------------------------
 
-@app.route("/register-deployment")
+@app.route("/register-deployment", methods=["POST"])
+@role_required("Auditor")
 def register_deployment():
     connection = get_connection()
 
@@ -472,6 +586,280 @@ def get_deployments():
     finally:
         connection.close()
 
+        # ---------------------------------------------------------
+# USER REGISTRATION
+# ---------------------------------------------------------
+
+@app.route("/register-user", methods=["POST"])
+def register_user():
+    connection = get_connection()
+
+    try:
+        data = request.get_json()
+
+        username = data.get("username")
+        password = data.get("password")
+        role = data.get("role")
+
+        if not username or not password or not role:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Username, password and role are required"
+            }), 400
+
+        if role not in ["ML Engineer", "Auditor"]:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Invalid role"
+            }), 400
+
+        existing_user = connection.execute(
+            "SELECT id FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+
+        if existing_user:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Username already exists"
+            }), 409
+
+        hashed_password = generate_password_hash(password)
+
+        connection.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        """, (
+            username,
+            hashed_password,
+            role
+        ))
+
+        connection.commit()
+
+        return jsonify({
+            "status": "SUCCESS",
+            "message": "User registered successfully",
+            "username": username,
+            "role": role
+        }), 201
+
+    except Exception as error:
+        connection.rollback()
+        return jsonify({
+            "status": "FAILED",
+            "message": str(error)
+        }), 500
+
+    finally:
+        connection.close()
+
+        # ---------------------------------------------------------
+# USER LOGIN
+# ---------------------------------------------------------
+
+@app.route("/login", methods=["POST"])
+def login():
+    connection = get_connection()
+
+    try:
+        data = request.get_json()
+
+        username = data.get("username")
+        password = data.get("password")
+
+        if not username or not password:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Username and password are required"
+            }), 400
+
+        user = connection.execute("""
+            SELECT id, username, password, role
+            FROM users
+            WHERE username = ?
+        """, (username,)).fetchone()
+
+        if not user:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Invalid username or password"
+            }), 401
+
+            if not check_password_hash(user["password"], password):
+             return jsonify({
+                "status": "FAILED",
+                "message": "Invalid username or password"
+            }), 401
+
+        session["user_id"] = user["id"]
+        session["username"] = user["username"]
+        session["role"] = user["role"]
+
+        return jsonify({
+            "status": "SUCCESS",
+            "message": "Login successful",
+            "username": user["username"],
+            "role": user["role"]
+        }), 200
+
+    except Exception as error:
+        return jsonify({
+            "status": "FAILED",
+            "message": str(error)
+        }), 500
+
+    finally:
+        connection.close()
+
+    # ---------------------------------------------------------
+# USER LOGOUT
+# ---------------------------------------------------------
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+
+    return jsonify({
+        "status": "SUCCESS",
+        "message": "Logout successful"
+    }), 200
+
+# ---------------------------------------------------------
+# CURRENT USER
+# ---------------------------------------------------------
+
+@app.route("/current-user", methods=["GET"])
+def current_user():
+    if "user_id" not in session:
+        return jsonify({
+            "status": "FAILED",
+            "message": "User is not logged in"
+        }), 401
+
+    return jsonify({
+        "status": "SUCCESS",
+        "username": session["username"],
+        "role": session["role"]
+    }), 200
+# ---------------------------------------------------------
+# GENERATE NEW PREDICTION
+# ---------------------------------------------------------
+
+@app.route("/predict", methods=["POST"])
+@role_required("ML Engineer")
+def predict():
+    connection = get_connection()
+
+    try:
+        data = request.get_json()
+
+        required_fields = [
+            "patient_id",
+            "age",
+            "gender",
+            "blood_pressure",
+            "glucose_level",
+            "heart_rate",
+            "symptom_score"
+        ]
+
+        missing_fields = [
+            field for field in required_fields
+            if field not in data
+        ]
+
+        if missing_fields:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Missing required fields",
+                "missing_fields": missing_fields
+            }), 400
+
+        model_path = BASE_DIR / "models" / "model_v1.pkl"
+
+        with open(model_path, "rb") as file:
+            model_data = joblib.load(file)
+
+        model = model_data["model"]
+        gender_encoder = model_data["gender_encoder"]
+
+        gender = data["gender"]
+
+        if gender not in gender_encoder.classes_:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Gender must be Female or Male"
+            }), 400
+
+        gender_encoded = gender_encoder.transform([gender])[0]
+
+        features = [[
+            int(data["age"]),
+            gender_encoded,
+            int(data["blood_pressure"]),
+            int(data["glucose_level"]),
+            int(data["heart_rate"]),
+            int(data["symptom_score"])
+        ]]
+
+        prediction = model.predict(features)[0]
+
+        connection.execute("""
+            INSERT INTO predictions
+            (
+                patient_id,
+                prediction,
+                dataset_version,
+                feature_version,
+                code_version,
+                model_version,
+                parameters,
+                deployment_version,
+                reproducibility_status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            data["patient_id"],
+            str(prediction),
+            "dataset_v1",
+            "feature_v1",
+            "code_v1",
+            "model_v1",
+            "max_depth=5, random_state=42",
+            "deployment_v1",
+            "UNKNOWN"
+        ))
+
+        connection.commit()
+
+        return jsonify({
+            "status": "SUCCESS",
+            "patient_id": data["patient_id"],
+            "prediction": str(prediction),
+            "dataset_version": "dataset_v1",
+            "feature_version": "feature_v1",
+            "model_version": "model_v1",
+            "deployment_version": "deployment_v1"
+        }), 201
+
+    except (ValueError, TypeError) as error:
+        connection.rollback()
+        return jsonify({
+            "status": "FAILED",
+            "message": str(error)
+        }), 400
+
+    except Exception as error:
+        connection.rollback()
+        app.logger.exception("Prediction generation failed")
+        return jsonify({
+            "status": "FAILED",
+            "message": str(error)
+        }), 500
+
+    finally:
+        connection.close()
 
 # ---------------------------------------------------------
 # VIEW PREDICTIONS

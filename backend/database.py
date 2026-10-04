@@ -210,6 +210,18 @@ def init_database():
                 ADD COLUMN hash_verified_at TEXT
             """)
 
+        # ---------------------------------------------------------
+        # 12. USERS
+        # ---------------------------------------------------------
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT NOT NULL
+            )
+        """)
+
         connection.commit()
 
     except Exception:

@@ -1,0 +1,22 @@
+{
+    "experiment": "Fresh Model Retraining Reproducibility",
+    "dataset": "dataset_v1",
+    "feature_version": "feature_v1",
+    "model_type": "DecisionTreeClassifier",
+    "model_parameters": {
+        "max_depth": 5,
+        "random_state": 42
+    },
+    "test_size": 0.2,
+    "training_runs": 2,
+    "run_1_accuracy": 0.988,
+    "run_2_accuracy": 0.988,
+    "predictions_match": true,
+    "accuracy_match": true,
+    "artifact_hash_match": true,
+    "run_1_artifact_hash": "ef1b86082d191adefc36821d4baad41a759a31b97e8cc6cc9c220206d6ebedbb",
+    "run_2_artifact_hash": "ef1b86082d191adefc36821d4baad41a759a31b97e8cc6cc9c220206d6ebedbb",
+    "result": "PASS",
+    "interpretation": "Both training runs produced matching predictions and accuracy.",
+    "note": "Artifact hash equality is reported separately. Different serialized model files can have different hashes even when predictions match."
+}
